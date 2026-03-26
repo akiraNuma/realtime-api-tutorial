@@ -154,9 +154,11 @@ Node.js 24 が必要です。お使いのバージョンマネージャーに合
 
 | ツール | コマンド | 備考 |
 |--------|---------|------|
-| **mise**（推奨） | `mise install` | `.mise.toml` を読み取り |
+| **mise**（推奨） | `mise trust && mise install` | `.mise.toml` を読み取り |
 | nodenv | `nodenv install` | `.node-version` を読み取り |
 | nvm | `nvm install && nvm use` | `.node-version` を読み取り |
+
+> **mise をお使いの方へ**: 初回クローン後に `mise trust` が必要です。mise はセキュリティのため、未知のディレクトリの `.mise.toml` を信頼するか確認を求めます。`mise trust` を実行すると以降はエラーが出なくなります。
 
 ```bash
 # サーバー起動

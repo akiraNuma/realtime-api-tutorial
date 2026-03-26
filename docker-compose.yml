@@ -1,0 +1,37 @@
+services:
+  # ── サーバー (TypeScript/Express) ──
+  # OpenAI Realtime API とのセッション管理、WebSocket 接続、
+  # サーバー側 Function Calling を担当
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - '${API_PORT:-9876}:${API_PORT:-9876}'
+    environment:
+      - NODE_ENV=development
+      - API_PORT=${API_PORT:-9876}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./server/main:/app/main
+    tty: true
+    stdin_open: true
+
+  # ── クライアント (Vue 3 + Vite) ──
+  # WebRTC で OpenAI Realtime API に直接音声接続、
+  # クライアント側 Function Calling を担当
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - '${CLIENT_PORT:-5173}:5173'
+    environment:
+      - VITE_API_URL=http://server:${API_PORT:-9876}
+    volumes:
+      - ./client/src:/app/src
+      - ./client/index.html:/app/index.html
+    depends_on:
+      - server
+    tty: true
+    stdin_open: true

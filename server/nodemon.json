@@ -1,0 +1,6 @@
+{
+  "watch": ["main"],
+  "ext": "ts,json,md",
+  "ignore": ["node_modules"],
+  "exec": "tsx ./main/main.ts"
+}

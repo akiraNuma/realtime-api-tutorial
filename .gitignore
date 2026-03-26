@@ -1,0 +1,14 @@
+.env
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db

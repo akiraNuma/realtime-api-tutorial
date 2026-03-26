@@ -116,7 +116,16 @@ realtime-api-tutorial/
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)（Docker Compose v2 含む）
 
-### 1. 環境変数を設定
+### 1. リポジトリのクローン
+
+```bash
+git clone -b v1 https://github.com/akiraNuma/realtime-api-tutorial
+cd realtime-api-tutorial
+```
+
+> `-b v1` で本書に対応するバージョンのコードを取得します。最新の `main` ブランチは改訂等で内容が変わる場合があります。
+
+### 2. 環境変数を設定
 
 ```bash
 cp .env.example .env
@@ -125,7 +134,7 @@ cp .env.example .env
 
 > `OPENAI_API_KEY` は Realtime API が有効なキーが必要です。
 
-### 2. 起動
+### 3. 起動
 
 ```bash
 docker compose up

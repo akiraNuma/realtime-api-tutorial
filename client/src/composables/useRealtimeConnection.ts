@@ -63,8 +63,14 @@ export function useRealtimeConnection(handlers: ClientToolHandlers) {
 
     try {
       // 1. マイク取得
+      // タブレット等でスピーカー音声をマイクが拾うのを防ぐため、
+      // エコーキャンセル・ノイズ抑制・自動ゲイン制御を明示的に有効化
       localMicStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       })
 
       // 2. PeerConnection 作成

@@ -34,6 +34,7 @@ export function useRealtimeConnection(handlers: ClientToolHandlers) {
   const isConnecting: Ref<boolean> = ref(false)
   const isMicEnabled: Ref<boolean> = ref(true)
   const isAiThinking: Ref<boolean> = ref(false)
+  const isAiSpeaking: Ref<boolean> = ref(false)
   const toolInProgress: Ref<string | null> = ref(null)
   const conversationLog: Ref<ConversationLogEntry[]> = ref([])
   const toolCallLog: Ref<ToolCallLogEntry[]> = ref([])
@@ -52,8 +53,22 @@ export function useRealtimeConnection(handlers: ClientToolHandlers) {
   let pc: RTCPeerConnection | null = null
   let dc: RTCDataChannel | null = null
   let localMicStream: MediaStream | null = null
+  let micUnmuteTimer: ReturnType<typeof setTimeout> | null = null
   const audioEl: HTMLAudioElement = new Audio()
   audioEl.autoplay = true
+
+  /**
+   * マイクトラックの有効/無効を切り替える（内部用）
+   * ユーザーが手動でミュートしている場合は再有効化しない
+   */
+  function setMicTrackEnabled(enabled: boolean) {
+    if (!localMicStream) return
+    // ユーザーが手動ミュート中なら有効化しない
+    if (enabled && !isMicEnabled.value) return
+    localMicStream.getAudioTracks().forEach(track => {
+      track.enabled = enabled
+    })
+  }
 
   // ── 接続 ──
   async function connect() {
@@ -193,6 +208,28 @@ export function useRealtimeConnection(handlers: ClientToolHandlers) {
         break
       }
 
+      // ── AI 音声出力（発話検知） ──
+      // タブレット等では echoCancellation が効かずループバックするため、
+      // AI 発話中はマイクを自動ミュートして再入力を防ぐ
+      case 'output_audio_buffer.started': {
+        isAiSpeaking.value = true
+        if (micUnmuteTimer) {
+          clearTimeout(micUnmuteTimer)
+          micUnmuteTimer = null
+        }
+        setMicTrackEnabled(false)
+        break
+      }
+      case 'output_audio_buffer.stopped': {
+        isAiSpeaking.value = false
+        // 残響を拾わないよう少し遅延してからマイクを戻す
+        micUnmuteTimer = setTimeout(() => {
+          setMicTrackEnabled(true)
+          micUnmuteTimer = null
+        }, 300)
+        break
+      }
+
       // ── AI 応答テキスト（音声トランスクリプト） ──
       case 'response.output_audio_transcript.done': {
         const transcript = event.transcript as string
@@ -263,6 +300,10 @@ export function useRealtimeConnection(handlers: ClientToolHandlers) {
 
   // ── 切断 ──
   function disconnect() {
+    if (micUnmuteTimer) {
+      clearTimeout(micUnmuteTimer)
+      micUnmuteTimer = null
+    }
     if (dc) {
       dc.close()
       dc = null
@@ -278,6 +319,7 @@ export function useRealtimeConnection(handlers: ClientToolHandlers) {
     audioEl.srcObject = null
     isConnected.value = false
     isAiThinking.value = false
+    isAiSpeaking.value = false
     toolInProgress.value = null
   }
 
@@ -355,6 +397,7 @@ export function useRealtimeConnection(handlers: ClientToolHandlers) {
     isConnecting,
     isMicEnabled,
     isAiThinking,
+    isAiSpeaking,
     toolInProgress,
     conversationLog,
     toolCallLog,

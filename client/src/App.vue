@@ -6,6 +6,7 @@ import ConversationPanel from './components/ConversationPanel.vue'
 import PizzaPreviewPanel from './components/PizzaPreviewPanel.vue'
 import MenuPanel from './components/MenuPanel.vue'
 import NotificationToast from './components/NotificationToast.vue'
+import CharacterViewer from './components/CharacterViewer.vue'
 import type {
   ClientToolHandlers,
   MenuItemData,
@@ -376,9 +377,13 @@ watch(connection.isConnected, connected => {
           </div>
         </div>
 
-        <!-- 右サイドバー：ピザプレビュー（先頭）＋メニュー -->
-        <transition name="slide">
-          <div v-if="menuState || pizzaState" class="side-col">
+        <!-- 右サイドバー：キャラクター＋ピザプレビュー＋メニュー -->
+        <div class="side-col">
+          <CharacterViewer
+            :is-ai-speaking="connection.isAiSpeaking.value"
+          />
+          <transition name="slide">
+          <div v-if="menuState || pizzaState" class="side-col-panels">
             <!-- ピザプレビュー / 注文結果（preview_pizza / show_order_result で表示） -->
             <PizzaPreviewPanel
               v-if="pizzaState"
@@ -410,6 +415,7 @@ watch(connection.isConnected, connected => {
             </details>
           </div>
         </transition>
+        </div>
       </div>
     </div>
   </div>
@@ -866,7 +872,7 @@ body {
   white-space: pre;
 }
 
-/* Side column (pizza preview + menu) */
+/* Side column (character + pizza preview + menu) */
 .side-col {
   width: 420px;
   flex-shrink: 0;
@@ -876,6 +882,13 @@ body {
   gap: 8px;
   overflow-y: auto;
 }
+
+.side-col-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 
 /* メニュー折りたたみ */
 .menu-details {
